@@ -229,6 +229,60 @@ Feature: Queries steps
             ]
             """
 
+    Scenario: Using the REST API, I can perform filtered queries
+        When I make a GET request to /api/queries/selectCommoditiesByExchangeOrdered?exchange=ICE
+        Then The response code should be 200
+        And The response body should be JSON matching
+            """
+            [
+                {
+                  "$class": "org.acme.biznet.Commodity",
+                  "tradingSymbol": "BUT",
+                  "description": "Butter",
+                  "mainExchange": "ICE",
+                  "quantity": 50,
+                  "owner": "resource:org.acme.biznet.Trader#TRADER2",
+                  "issueDate": "2018-04-04T00:00:00.000Z"
+                },
+                {
+                  "$class": "org.acme.biznet.Commodity",
+                  "tradingSymbol": "CC",
+                  "description": "Cocoa",
+                  "mainExchange": "ICE",
+                  "quantity": 80,
+                  "owner": "resource:org.acme.biznet.Trader#TRADER2",
+                  "issueDate": "2018-01-01T00:00:00.000Z"
+                }
+            ]
+            """
+
+    Scenario: Using the REST API, I can perform filtered queries
+        When I make a GET request to /api/queries/selectCommoditiesByExchangeReverseOrdered?exchange=ICE
+        Then The response code should be 200
+        And The response body should be JSON matching
+            """
+            [
+                {
+                  "$class": "org.acme.biznet.Commodity",
+                  "tradingSymbol": "CC",
+                  "description": "Cocoa",
+                  "mainExchange": "ICE",
+                  "quantity": 80,
+                  "owner": "resource:org.acme.biznet.Trader#TRADER2",
+                  "issueDate": "2018-01-01T00:00:00.000Z"
+                },
+                {
+                  "$class": "org.acme.biznet.Commodity",
+                  "tradingSymbol": "BUT",
+                  "description": "Butter",
+                  "mainExchange": "ICE",
+                  "quantity": 50,
+                  "owner": "resource:org.acme.biznet.Trader#TRADER2",
+                  "issueDate": "2018-04-04T00:00:00.000Z"
+                }
+            ]
+            """
+
     Scenario: Using the REST API, I can list the Commodities using a query
         When I make a GET request to /api/queries/selectCommodities
         Then The response code should be 200

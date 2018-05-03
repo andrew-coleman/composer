@@ -28,6 +28,22 @@ query selectCommoditiesByExchange {
           WHERE (mainExchange==_$exchange)
 }
 
+query selectCommoditiesByExchangeOrdered {
+  description: "Select all commodities based on their main exchange"
+  statement:
+      SELECT org.acme.biznet.Commodity
+          WHERE (mainExchange==_$exchange)
+          ORDER BY quantity
+}
+
+query selectCommoditiesByExchangeReverseOrdered {
+  description: "Select all commodities based on their main exchange"
+  statement:
+      SELECT org.acme.biznet.Commodity
+          WHERE (mainExchange==_$exchange)
+          ORDER BY quantity DESC
+}
+
 query selectCommoditiesByOwner {
   description: "Select all commodities based on their owner"
   statement:
