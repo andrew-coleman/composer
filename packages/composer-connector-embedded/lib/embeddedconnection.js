@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { Certificate, CertificateUtil, Connection } = require('composer-common');
+const { Certificate, CertificateUtil, Connection, IndexCompiler } = require('composer-common');
 const { EmbeddedContainer, EmbeddedContext, EmbeddedDataService } = require('composer-runtime-embedded');
 const EmbeddedSecurityContext = require('./embeddedsecuritycontext');
 const { Engine, InstalledBusinessNetwork } = require('composer-runtime');
@@ -174,6 +174,15 @@ class EmbeddedConnection extends Connection {
         EmbeddedConnection.addBusinessNetwork(businessNetworkIdentifier, this.connectionProfile, chaincodeUUID);
         EmbeddedConnection.addChaincode(chaincodeUUID, container, engine, this.installedBusinessNetwork);
         let context = new EmbeddedContext(engine, identity, this, this.installedBusinessNetwork);
+
+        // install indexes for queries (if any exist)
+        const queryManager = this.businessNetworkDefinition.getQueryManager();
+        const indexCompiler = new IndexCompiler();
+        const indexes = indexCompiler.compile(queryManager);
+        indexes.forEach(index => {
+            context.getDataService().createIndex(index);
+        });
+
         await engine.init(context, 'start', [startTransaction]);
     }
 

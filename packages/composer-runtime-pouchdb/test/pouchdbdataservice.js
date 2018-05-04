@@ -345,6 +345,65 @@ describe('PouchDBDataService', () => {
                 }]);
         });
 
+        it('should return the results of a sorted query', () => {
+            const index = {
+                index: {
+                    fields: ['\\$registryType','thingId']
+                },
+                name: 'Test',
+                ddoc:'TestDoc',
+                type:'json'
+            };
+            return dataService.createIndex(index)
+                .then(() => {
+                    return dataService.executeQuery('{"selector":{"\\\\$registryType":{"$eq":"Asset"}},"sort":["\\\\$registryType","thingId"]}')
+                        .should.eventually.be.deep.equal([{
+                            thingId: 1,
+                            colour: 'red',
+                            $class: 'org.acme.Foo1',
+                            $registryType: 'Asset',
+                            $registryId: 'org.acme.Foo1'
+                        }, {
+                            thingId: 2,
+                            colour: 'black',
+                            $class: 'org.acme.Foo1',
+                            $registryType: 'Asset',
+                            $registryId: 'DogesBagOfFoos'
+                        }]);
+                });
+        });
+
+        it('should return the results of a reverse sorted query', () => {
+            const index = {
+                index: {
+                    fields: [
+                        {'\\$registryType':'desc'},
+                        {thingId:'desc'}
+                    ]
+                },
+                name: 'Test',
+                ddoc:'TestDoc',
+                type:'json'
+            };
+            return dataService.createIndex(index)
+                .then(() => {
+                    return dataService.executeQuery('{"selector":{"\\\\$registryType":{"$eq":"Asset"}},"sort":[{"\\\\$registryType":"desc"},{"thingId":"desc"}]}')
+                        .should.eventually.be.deep.equal([{
+                            thingId: 2,
+                            colour: 'black',
+                            $class: 'org.acme.Foo1',
+                            $registryType: 'Asset',
+                            $registryId: 'DogesBagOfFoos'
+                        }, {
+                            thingId: 1,
+                            colour: 'red',
+                            $class: 'org.acme.Foo1',
+                            $registryType: 'Asset',
+                            $registryId: 'org.acme.Foo1'
+                        }]);
+                });
+        });
+
     });
 
     describe('#clearCollection', () => {

@@ -186,6 +186,50 @@ class PouchDBDataService extends DataService {
     }
 
     /**
+     * Removes the \\ escape preceding the $
+     * @param {Object} term - the query term - either an object, or an array of strings, or an array of objects
+     */
+    removeEscape(term) {
+        const dollarFields = ['$class', '$registryType', '$registryId'];
+        const escapedFields = ['\\$class', '\\$registryType', '\\$registryId'];
+        if(Array.isArray(term)) {
+            for(let index = 0; index < term.length; index++) {
+                if(typeof term[index] === 'object') {
+                    this.removeEscape(term[index]);
+                } else {
+                    const pos = escapedFields.indexOf(term[index]);
+                    if(pos !== -1) {
+                        term[index] = dollarFields[pos];
+                    }
+                }
+            }
+        }
+        dollarFields.forEach((prop) => {
+            if (term[`\\${prop}`]) {
+                term[prop] = term[`\\${prop}`];
+                delete term[`\\${prop}`];
+            }
+        });
+    }
+
+    /**
+     * Installs the given query index in PouchDB
+     * @param {Object} index - the query index
+     * @returns {Promise} A promise that will be resolved
+     * when complete, or rejected with an error.
+     */
+    createIndex(index) {
+        const method = 'createIndex';
+        LOG.entry(method, index);
+
+        this.removeEscape(index.index.fields);
+        const promise = this.db.createIndex(index);
+
+        LOG.exit(method);
+        return promise;
+    }
+
+    /**
      * Execute a query across all objects stored in all collections, using a query
      * string that is dependent on the current Blockchain platform.
      * @param {string} queryString The query string for the current Blockchain platform.
@@ -198,12 +242,10 @@ class PouchDBDataService extends DataService {
         const query = JSON.parse(queryString);
         // PouchDB doesn't deal with $class in the same way that CouchDB does, so
         // we need to adapt the selector slightly.
-        ['$class', '$registryType', '$registryId'].forEach((prop) => {
-            if (query.selector[`\\${prop}`]) {
-                query.selector[prop] = query.selector[`\\${prop}`];
-                delete query.selector[`\\${prop}`];
-            }
-        });
+        this.removeEscape(query.selector);
+        if(query.sort) {
+            this.removeEscape(query.sort);
+        }
         return this.db.find(query)
             .then((response) => {
                 const docs = response.docs.map((doc) => {
